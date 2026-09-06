@@ -42,6 +42,7 @@ public class Transaction {
     @Column(name = "balance_after_transaction", precision = 15, scale = 2)
     private BigDecimal balanceAfterTransaction;
 
+    @Builder.Default
     @Column(name = "status", length = 20)
     @Enumerated(EnumType.STRING)
     private TransactionStatus status = TransactionStatus.SUCCESS;

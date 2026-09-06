@@ -38,6 +38,7 @@ public class Customer {
     @Column(name = "account_number", nullable = false, unique = true, length = 20)
     private String accountNumber;
 
+    @Builder.Default
     @DecimalMin(value = "0.00", message = "Balance cannot be negative")
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal balance = BigDecimal.ZERO;
