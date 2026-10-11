@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBank — Immutable Security Audit Logs</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/navbar :: navbar('compliance-audit')}"></div>
+
+<div class="container py-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-archive-fill text-primary me-2"></i> Immutable Security Audit Trail</h5>
+                <small class="text-muted">Tamper-proof record of logins, transactions, authorization checks, and approvals</small>
+            </div>
+            <span class="badge bg-secondary" th:text="${auditLogs.size()} + ' records'">0 records</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Action</th>
+                        <th>Resource</th>
+                        <th>Details</th>
+                        <th>IP Address</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${#lists.isEmpty(auditLogs)}">
+                        <td colspan="8" class="text-center py-4 text-muted">No audit entries found.</td>
+                    </tr>
+                    <tr th:each="log : ${auditLogs}">
+                        <td class="small" th:text="${#temporals.format(log.timestamp, 'yyyy-MM-dd HH:mm:ss')}">Time</td>
+                        <td class="fw-semibold" th:text="${log.username}">user</td>
+                        <td><span class="badge bg-secondary" th:text="${log.role}">ROLE</span></td>
+                        <td class="fw-bold" th:text="${log.action}">ACTION</td>
+                        <td class="font-monospace small" th:text="${log.resource}">RES</td>
+                        <td class="small text-muted" th:text="${log.details}">Details</td>
+                        <td class="small" th:text="${log.ipAddress}">IP</td>
+                        <td>
+                            <span class="badge" th:classappend="${log.status == 'SUCCESS' ? 'bg-success' : (log.status == 'DENIED' ? 'bg-danger' : 'bg-warning text-dark')}" th:text="${log.status}">STATUS</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

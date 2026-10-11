@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBank — Teller Cash Desk</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}">
+    <link rel="alternate icon" type="image/x-icon" th:href="@{/favicon.ico}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/navbar :: navbar('staff-teller')}"></div>
+
+<div class="container py-4">
+    <!-- Flash Messages -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Cash Deposit Desk -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 border-top border-4 border-success">
+                <div class="card-header bg-white py-3">
+                    <h5 class="fw-bold mb-0 text-success"><i class="bi bi-arrow-down-circle me-2"></i> Over-The-Counter Cash Deposit</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form th:action="@{/staff/deposit}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Customer Account Number *</label>
+                            <input type="text" name="accountNumber" class="form-control font-monospace" placeholder="e.g. SB3532006893" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Cash Amount (₹) *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" step="0.01" min="1.00" name="amount" class="form-control" placeholder="0.00" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Teller Remarks</label>
+                            <input type="text" name="description" class="form-control" placeholder="Branch cash intake">
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 fw-semibold">
+                            <i class="bi bi-check-lg me-1"></i> Process Cash Deposit
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cash Withdrawal Desk -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 border-top border-4 border-danger">
+                <div class="card-header bg-white py-3">
+                    <h5 class="fw-bold mb-0 text-danger"><i class="bi bi-arrow-up-circle me-2"></i> Over-The-Counter Cash Withdrawal</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form th:action="@{/staff/withdraw}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Customer Account Number *</label>
+                            <input type="text" name="accountNumber" class="form-control font-monospace" placeholder="e.g. SB3532006893" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Withdrawal Amount (₹) *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" step="0.01" min="1.00" name="amount" class="form-control" placeholder="0.00" required>
+                            </div>
+                            <div class="form-text small text-muted">Amounts &ge; ₹25,000.00 trigger dual-control Branch Manager approval.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Teller Remarks</label>
+                            <input type="text" name="description" class="form-control" placeholder="Branch cash payout">
+                        </div>
+                        <button type="submit" class="btn btn-danger w-100 fw-semibold">
+                            <i class="bi bi-check-lg me-1"></i> Process Cash Withdrawal
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3">
+            <h5 class="fw-bold mb-0"><i class="bi bi-clock-history me-2"></i> Recent Branch Operations</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Account</th>
+                        <th class="text-end">Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="txn : ${recentTransactions}">
+                        <td class="small" th:text="${#temporals.format(txn.transactionDate, 'yyyy-MM-dd HH:mm')}">Date</td>
+                        <td><span class="badge bg-secondary" th:text="${txn.transactionType}">TYPE</span></td>
+                        <td class="font-monospace small">
+                            <span th:if="${txn.senderAccount != null}" th:text="${txn.senderAccount.accountNumber}"></span>
+                            <span th:if="${txn.senderAccount == null and txn.receiverAccount != null}" th:text="${txn.receiverAccount.accountNumber}"></span>
+                        </td>
+                        <td class="text-end fw-bold" th:text="${@currencyUtil.format(txn.amount)}">₹0.00</td>
+                        <td><span class="badge bg-success" th:text="${txn.status}">SUCCESS</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

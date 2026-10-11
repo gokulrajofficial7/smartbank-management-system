@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBank — Branch Manager Dashboard</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}">
+    <link rel="alternate icon" type="image/x-icon" th:href="@{/favicon.ico}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/navbar :: navbar('manager')}"></div>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h3 class="fw-bold mb-0">Branch Executive Overview</h3>
+                <span class="badge bg-primary" th:if="${branch != null}" th:text="${branch.branchName + ' (' + branch.branchCode + ')'}">Branch</span>
+            </div>
+            <p class="text-muted small mb-0">Dual-Control oversight, branch metrics, and risk monitoring</p>
+        </div>
+        <a th:href="@{/manager/approvals}" class="btn btn-warning fw-semibold">
+            <i class="bi bi-shield-check me-1"></i> Maker-Checker Approvals Queue
+            <span class="badge bg-danger ms-1" th:text="${pendingApprovals.size()}">0</span>
+        </a>
+    </div>
+
+    <!-- Metrics Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <a th:href="@{/manager/customers}" class="text-decoration-none d-block h-100" aria-label="View branch customers directory">
+                <div class="card shadow-sm border-0 border-start border-4 border-primary p-3 h-100"
+                     tabindex="0"
+                     style="transition: transform 0.15s ease, box-shadow 0.15s ease; cursor: pointer;"
+                     onmouseover="this.style.transform='translateY(-2px)'; this.classList.add('shadow');"
+                     onmouseout="this.style.transform='none'; this.classList.remove('shadow');">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted text-uppercase fw-semibold">Total Customers</small>
+                        <i class="bi bi-chevron-right text-primary small"></i>
+                    </div>
+                    <h3 class="fw-bold mb-0 text-dark mt-1" th:text="${totalCustomers}">0</h3>
+                    <small class="text-primary mt-2 d-inline-block"><i class="bi bi-people-fill me-1"></i>View Branch Customers &rarr;</small>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 border-start border-4 border-success p-3">
+                <small class="text-muted text-uppercase fw-semibold">Total Deposits Managed</small>
+                <h3 class="fw-bold mb-0 text-success" th:text="${@currencyUtil.format(totalBalance)}">₹0.00</h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 border-start border-4 border-warning p-3">
+                <small class="text-muted text-uppercase fw-semibold">Dual-Control Pending</small>
+                <h3 class="fw-bold mb-0 text-warning" th:text="${pendingApprovals.size()}">0</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick link to approvals -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4 text-center">
+            <i class="bi bi-check-all fs-1 text-primary mb-2 d-block"></i>
+            <h5 class="fw-bold">Ready to review high-value transactions?</h5>
+            <p class="text-muted small">Dual-control rules ensure that transactions exceeding the configured approval threshold must be verified by a distinct authorized checker.</p>
+            <a th:href="@{/manager/approvals}" class="btn btn-primary px-4 fw-semibold">Open Approvals Queue</a>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

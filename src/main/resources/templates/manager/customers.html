@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBank — Branch Customers Directory</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}">
+    <link rel="alternate icon" type="image/x-icon" th:href="@{/favicon.ico}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/navbar :: navbar('manager')}"></div>
+
+<div class="container py-4">
+
+    <!-- Breadcrumb & Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <a th:href="@{/manager/dashboard}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Dashboard
+                </a>
+                <h3 class="fw-bold mb-0">Branch Customers Directory</h3>
+                <span class="badge bg-primary" th:if="${branch != null}"
+                      th:text="${branch.branchName + ' (' + branch.branchCode + ')'}">Branch</span>
+            </div>
+            <p class="text-muted small mb-0">
+                Authoritative portfolio of customers assigned to your authorized branch scope
+            </p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-light text-dark border px-3 py-2 fs-6">
+                <i class="bi bi-people-fill text-primary me-1"></i>
+                <span th:text="${totalCount}">0</span> Assigned Customers
+            </span>
+        </div>
+    </div>
+
+    <!-- Search & Filter Card -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-3">
+            <form th:action="@{/manager/customers}" method="get" class="row g-2 align-items-center">
+                <div class="col-md-9 col-lg-10">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 text-muted">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0" name="query" th:value="${query}"
+                               placeholder="Search customer by name, account number or email..."
+                               aria-label="Search customers">
+                    </div>
+                </div>
+                <div class="col-md-3 col-lg-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-100 fw-semibold">
+                        <i class="bi bi-funnel me-1"></i> Search
+                    </button>
+                    <a th:if="${query != null and !query.isEmpty()}" th:href="@{/manager/customers}"
+                       class="btn btn-outline-secondary" title="Clear filter">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Customers Table Card -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="bi bi-person-lines-fill me-2 text-primary"></i>Customer Accounts
+            </h5>
+            <small class="text-muted">
+                Showing page <span th:text="${customersPage.number + 1}">1</span> of
+                <span th:text="${customersPage.totalPages > 0 ? customersPage.totalPages : 1}">1</span>
+            </small>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="branchCustomersTable">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3" style="width: 50px;">#</th>
+                        <th>Customer Name</th>
+                        <th>Account Number</th>
+                        <th>Account Type</th>
+                        <th>Account Status</th>
+                        <th>KYC Status</th>
+                        <th>Member Since</th>
+                        <th class="text-end pe-3">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${customersPage.empty}">
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                            <span class="fw-semibold">No customers found for this branch.</span>
+                            <p class="small text-muted mb-0" th:if="${query != null and !query.isEmpty()}">
+                                Try clearing the search query to view all assigned branch customers.
+                            </p>
+                        </td>
+                    </tr>
+                    <tr th:each="cust, stat : ${customersPage.content}">
+                        <td class="ps-3 text-muted small" th:text="${customersPage.number * customersPage.size + stat.count}">1</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="avatar-sm rounded-circle bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center"
+                                     style="width: 36px; height: 36px;"
+                                     th:text="${#strings.substring(cust.name, 0, 1).toUpperCase()}">U</div>
+                                <div>
+                                    <div class="fw-semibold text-dark" th:text="${cust.name}">Customer Name</div>
+                                    <small class="text-muted font-monospace" th:text="${cust.customerNumber}">CUST-100</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border font-monospace"
+                                  th:text="${cust.maskedAccountNumber}">•••• •••• 1234</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary"
+                                  th:text="${cust.accountType}">SAVINGS</span>
+                        </td>
+                        <td>
+                            <span th:switch="${cust.status != null ? cust.status.name() : 'UNKNOWN'}">
+                                <span th:case="'ACTIVE'" class="badge bg-success">Active</span>
+                                <span th:case="'PENDING_VERIFICATION'" class="badge bg-warning text-dark">Pending</span>
+                                <span th:case="'SUSPENDED'" class="badge bg-danger">Suspended</span>
+                                <span th:case="*" class="badge bg-secondary" th:text="${cust.status}">Status</span>
+                            </span>
+                        </td>
+                        <td>
+                            <span th:switch="${cust.kycStatus != null ? cust.kycStatus.name() : 'UNKNOWN'}">
+                                <span th:case="'VERIFIED'" class="badge bg-success bg-opacity-10 text-success border border-success">
+                                    <i class="bi bi-shield-check me-1"></i>Verified
+                                </span>
+                                <span th:case="'PENDING'" class="badge bg-warning bg-opacity-10 text-warning border border-warning">
+                                    <i class="bi bi-hourglass-split me-1"></i>Pending
+                                </span>
+                                <span th:case="'REJECTED'" class="badge bg-danger bg-opacity-10 text-danger border border-danger">
+                                    <i class="bi bi-x-circle me-1"></i>Rejected
+                                </span>
+                                <span th:case="*" class="badge bg-secondary" th:text="${cust.kycStatus}">KYC</span>
+                            </span>
+                        </td>
+                        <td class="text-muted small"
+                            th:text="${cust.createdAt != null ? #temporals.format(cust.createdAt, 'dd MMM yyyy') : '-'}">
+                            01 Jan 2026
+                        </td>
+                        <td class="text-end pe-3">
+                            <a th:href="@{/manager/customers/{id}(id=${cust.id})}"
+                               class="btn btn-sm btn-outline-primary fw-semibold"
+                               aria-label="View customer details">
+                                <i class="bi bi-eye me-1"></i> View Details
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Footer -->
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center py-3"
+             th:if="${customersPage.totalPages > 1}">
+            <small class="text-muted">
+                Showing <span th:text="${customersPage.number * customersPage.size + 1}">1</span> to
+                <span th:text="${customersPage.last ? customersPage.totalElements : (customersPage.number + 1) * customersPage.size}">10</span>
+                of <span th:text="${customersPage.totalElements}">100</span> entries
+            </small>
+            <nav aria-label="Branch Customers pagination">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item" th:classappend="${customersPage.first} ? 'disabled'">
+                        <a class="page-link" th:href="@{/manager/customers(page=${customersPage.number - 1}, query=${query})}">
+                            Previous
+                        </a>
+                    </li>
+                    <li class="page-item" th:each="pageNum : ${#numbers.sequence(0, customersPage.totalPages - 1)}"
+                        th:classappend="${pageNum == customersPage.number} ? 'active'">
+                        <a class="page-link" th:href="@{/manager/customers(page=${pageNum}, query=${query})}"
+                           th:text="${pageNum + 1}">1</a>
+                    </li>
+                    <li class="page-item" th:classappend="${customersPage.last} ? 'disabled'">
+                        <a class="page-link" th:href="@{/manager/customers(page=${customersPage.number + 1}, query=${query})}">
+                            Next
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Governance Note -->
+    <div class="card border-0 bg-white shadow-sm p-3">
+        <div class="d-flex align-items-center gap-3">
+            <i class="bi bi-shield-lock text-primary fs-3"></i>
+            <div>
+                <h6 class="fw-bold mb-0 text-dark">Branch Governance &amp; Read-Only Oversight</h6>
+                <small class="text-muted">
+                    Branch Managers are granted read-only visibility into assigned branch customer profiles for KYC compliance,
+                    audit readiness, and transaction verification. Direct balance modifications and unauthorized branch transfers are strictly prohibited.
+                </small>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

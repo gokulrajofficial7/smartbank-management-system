@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBank — Security Settings</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/navbar :: navbar('security')}"></div>
+
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a th:href="@{/customer/dashboard}">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Security Settings</li>
+        </ol>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Header -->
+    <div class="mb-4">
+        <h3 class="fw-bold mb-1"><i class="bi bi-shield-lock text-danger me-2"></i>Account Security & Access</h3>
+        <p class="text-muted small mb-0">Manage authentication credentials and review security health metrics</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- Security Overview -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-shield-check text-success me-2"></i> Security Posture
+                    </h5>
+                </div>
+                <div class="card-body p-4 pt-2">
+                    <div class="table-responsive">
+                        <table class="table table-borderless mb-0">
+                            <tbody>
+                                <tr>
+                                    <td class="text-muted small fw-semibold" style="width: 45%;">Account Status</td>
+                                    <td>
+                                        <span class="badge" th:classappend="${user.accountNonLocked ? 'bg-success' : 'bg-danger'}"
+                                              th:text="${user.accountNonLocked ? 'Normal (Unlocked)' : 'Locked'}">Unlocked</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted small fw-semibold">Failed Login Attempts</td>
+                                    <td class="font-monospace fw-bold" th:text="${user.failedLoginAttempts != null ? user.failedLoginAttempts : 0}">0</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted small fw-semibold">Last Successful Login</td>
+                                    <td class="small" th:text="${user.lastLoginAt != null ? #temporals.format(user.lastLoginAt, 'yyyy-MM-dd HH:mm:ss') : 'Current Session'}">Just now</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted small fw-semibold">Session Concurrency</td>
+                                    <td><span class="badge bg-secondary">Max 2 Active Sessions</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted small fw-semibold">Password Encryption</td>
+                                    <td><span class="badge bg-info text-dark">BCrypt (Work factor: 12)</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Protections Info Card -->
+            <div class="card shadow-sm border-0 bg-primary bg-opacity-10">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold text-primary mb-2"><i class="bi bi-info-circle-fill me-2"></i>Active Security Protections</h6>
+                    <ul class="list-unstyled small mb-0 text-secondary">
+                        <li class="mb-2"><i class="bi bi-check2 text-primary me-2"></i><strong>Brute-Force Shield:</strong> 5 failed password attempts triggers an automatic 15-minute lockout.</li>
+                        <li class="mb-2"><i class="bi bi-check2 text-primary me-2"></i><strong>Zero-Trust IDOR Protection:</strong> Access strictly restricted to accounts owned by you.</li>
+                        <li class="mb-2"><i class="bi bi-check2 text-primary me-2"></i><strong>Dual-Control Authorization:</strong> High-value transactions &ge; ₹10,000 require independent manager approval.</li>
+                        <li><i class="bi bi-check2 text-primary me-2"></i><strong>CSRF Protection:</strong> Every state-modifying action requires a synchronized security token.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Change Password Form -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-key-fill text-warning me-2"></i> Change Password
+                    </h5>
+                </div>
+                <div class="card-body p-4 pt-2">
+                    <form th:action="@{/customer/security/change-password}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                        <div class="mb-3">
+                            <label for="currentPassword" class="form-label fw-semibold small">Current Password *</label>
+                            <input type="password" class="form-control" id="currentPassword" name="currentPassword" placeholder="Enter current password" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label fw-semibold small">New Password (Min 8 chars) *</label>
+                            <input type="password" class="form-control" id="newPassword" name="newPassword" placeholder="Enter new strong password" minlength="8" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="confirmNewPassword" class="form-label fw-semibold small">Confirm New Password *</label>
+                            <input type="password" class="form-control" id="confirmNewPassword" name="confirmNewPassword" placeholder="Re-enter new password" minlength="8" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-danger w-100 py-2 fw-semibold">
+                            <i class="bi bi-shield-lock me-1"></i> Update Password
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

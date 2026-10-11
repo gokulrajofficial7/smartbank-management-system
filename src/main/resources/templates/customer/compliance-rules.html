@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regulatory & Banking Rules Transparency - SmartBank</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/navbar :: navbar('dashboard')}"></div>
+
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/customer/dashboard}">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Regulatory & Compliance Rules</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="card shadow-sm border-0 mb-4 bg-primary text-white">
+        <div class="card-body p-4">
+            <h3 class="fw-bold mb-1"><i class="bi bi-card-checklist me-2"></i>SmartBank Regulatory Compliance Matrix</h3>
+            <p class="mb-0 text-white-50">Centralized governance rules: Reserve Bank of India (RBI) Statutory Mandates, Income Tax Rules, NPCI Guidelines & Bank Operational Controls.</p>
+        </div>
+    </div>
+
+    <!-- Category Filter Summary -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-white p-3 text-center border-start border-4 border-danger">
+                <small class="text-muted fw-semibold d-block">RBI Statutory</small>
+                <h5 class="fw-bold text-danger mb-0">Statutory Mandates</h5>
+                <small class="text-muted">Legal regulations & circulars</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-white p-3 text-center border-start border-4 border-primary">
+                <small class="text-muted fw-semibold d-block">Bank Operational</small>
+                <h5 class="fw-bold text-primary mb-0">Internal Policies</h5>
+                <small class="text-muted">SmartBank operational ceilings</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-white p-3 text-center border-start border-4 border-warning">
+                <small class="text-muted fw-semibold d-block">Tax Laws</small>
+                <h5 class="fw-bold text-warning mb-0">IT Rules & TDS</h5>
+                <small class="text-muted">Rule 114B, 114E & Sec 194N</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-white p-3 text-center border-start border-4 border-info">
+                <small class="text-muted fw-semibold d-block">Simulation Rules</small>
+                <h5 class="fw-bold text-info mb-0">Demo Sandbox</h5>
+                <small class="text-muted">Internship test environment</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rules Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 border-0">
+            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-shield-lock-fill text-primary me-2"></i>Active Compliance Rules</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Rule Code & Name</th>
+                            <th>Category</th>
+                            <th>Channel</th>
+                            <th>Thresholds & Aggregation</th>
+                            <th>Statutory / Legal Citation</th>
+                            <th class="pe-3">Customer Guidance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="r : ${rules}">
+                            <td class="ps-3">
+                                <strong class="text-dark d-block" th:text="${r.ruleName}">Rule Name</strong>
+                                <span class="badge bg-light text-dark border font-monospace small" th:text="${r.ruleCode}">CODE</span>
+                            </td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${r.category.name() == 'RBI_STATUTORY' ? 'bg-danger' : (r.category.name() == 'BANK_OPERATIONAL' ? 'bg-primary' : (r.category.name() == 'FRAUD_RISK_CONTROL' ? 'bg-warning text-dark' : 'bg-info text-dark'))}"
+                                      th:text="${r.category}">CATEGORY</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary" th:text="${r.channel != null ? r.channel.displayName : 'ALL CHANNELS'}">UPI</span>
+                            </td>
+                            <td>
+                                <div class="small">
+                                    <span th:if="${r.minThreshold != null}">Min: <strong th:text="${@currencyUtil.format(r.minThreshold)}">₹0.00</strong><br></span>
+                                    <span th:if="${r.maxThreshold != null}">Max: <strong th:text="${@currencyUtil.format(r.maxThreshold)}">₹0.00</strong><br></span>
+                                    <span class="text-muted" th:text="${r.aggregationPeriod != null ? r.aggregationPeriod.description : 'Per Transaction'}">Per Txn</span>
+                                </div>
+                            </td>
+                            <td class="small text-muted font-monospace" th:text="${r.legalCitation}">Citation</td>
+                            <td class="pe-3 small text-secondary" th:text="${r.customerGuidance}">Guidance</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="sb-footer py-3 mt-5">
+    <div class="container text-center">
+        <small><i class="bi bi-bank2 me-1"></i>SmartBank &copy; 2025 | RBI & Tax Compliance Demonstration</small>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

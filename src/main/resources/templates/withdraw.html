@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Withdraw Money - SmartBank</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}">
+    <link rel="alternate icon" type="image/x-icon" th:href="@{/favicon.ico}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
@@ -11,32 +13,7 @@
 <body>
 
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark sb-navbar">
-    <div class="container-fluid">
-        <a class="navbar-brand fw-bold fs-4" href="/"><i class="bi bi-bank2 me-2"></i>SmartBank</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="/"><i class="bi bi-house me-1"></i>Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="/dashboard"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link" href="/customers"><i class="bi bi-people me-1"></i>Customers</a></li>
-                <li class="nav-item"><a class="nav-link" href="/customers/create"><i class="bi bi-person-plus me-1"></i>New Account</a></li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle active" href="#" data-bs-toggle="dropdown"><i class="bi bi-cash-coin me-1"></i>Transactions</a>
-                    <ul class="dropdown-menu dropdown-menu-dark">
-                        <li><a class="dropdown-item" href="/deposit"><i class="bi bi-arrow-down-circle me-2"></i>Deposit</a></li>
-                        <li><a class="dropdown-item active" href="/withdraw"><i class="bi bi-arrow-up-circle me-2"></i>Withdraw</a></li>
-                        <li><a class="dropdown-item" href="/transfer"><i class="bi bi-arrow-left-right me-2"></i>Transfer</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="/transactions"><i class="bi bi-clock-history me-2"></i>History</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav>
+<div th:replace="~{fragments/navbar :: navbar('transactions')}"></div>
 
 <div class="container py-5">
     <nav aria-label="breadcrumb" class="mb-4">
@@ -67,7 +44,7 @@
                         <div>
                             <strong th:text="${customer.name}"></strong><br>
                             <small>Account: <span th:text="${customer.accountNumber}"></span> &bull;
-                                Available: <span class="fw-bold text-success">₹<span th:text="${#numbers.formatDecimal(customer.balance, 1, 'COMMA', 2, 'POINT')}"></span></span>
+                                Available: <span class="fw-bold text-success" th:text="${@currencyUtil.format(customer.balance)}">₹0.00</span>
                             </small>
                         </div>
                     </div>
@@ -94,6 +71,9 @@
                                 <span class="input-group-text fw-bold">₹</span>
                                 <input type="number" class="form-control" id="amount" name="amount"
                                        placeholder="0.00" min="1" step="0.01" required>
+                            </div>
+                            <div class="form-text small text-muted mt-2">
+                                <i class="bi bi-shield-check text-primary me-1"></i><strong>Tax Compliance Notice:</strong> Cash withdrawals are governed by Income Tax Section 194N. Cumulative cash withdrawals in a Financial Year exceeding ₹1 Crore (for ITR filers: 2%) or exceeding ₹20 Lakh (for non-filers: 2% / 5%) trigger TDS withholding (Simulated).
                             </div>
                         </div>
 
@@ -129,7 +109,9 @@
                             <button type="submit" class="btn btn-danger px-4 fw-semibold flex-grow-1">
                                 <i class="bi bi-check-circle me-2"></i>Confirm Withdrawal
                             </button>
-                            <a href="/customers" class="btn btn-outline-secondary px-4">Cancel</a>
+                            <a href="/customers" class="btn btn-outline-secondary px-4" sec:authorize="hasAnyRole('TELLER', 'CUSTOMER_SERVICE_OFFICER', 'BRANCH_MANAGER', 'BANK_ADMIN', 'SUPER_ADMIN')">Cancel</a>
+                            <a href="/customer/dashboard" class="btn btn-outline-secondary px-4" sec:authorize="hasRole('CUSTOMER')">Cancel</a>
+                            <a href="/" class="btn btn-outline-secondary px-4" sec:authorize="!isAuthenticated()">Cancel</a>
                         </div>
                     </form>
                 </div>

@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Transaction History - SmartBank</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}">
+    <link rel="alternate icon" type="image/x-icon" th:href="@{/favicon.ico}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
@@ -11,32 +13,7 @@
 <body>
 
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark sb-navbar">
-    <div class="container-fluid">
-        <a class="navbar-brand fw-bold fs-4" href="/"><i class="bi bi-bank2 me-2"></i>SmartBank</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="/"><i class="bi bi-house me-1"></i>Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="/dashboard"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link" href="/customers"><i class="bi bi-people me-1"></i>Customers</a></li>
-                <li class="nav-item"><a class="nav-link" href="/customers/create"><i class="bi bi-person-plus me-1"></i>New Account</a></li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle active" href="#" data-bs-toggle="dropdown"><i class="bi bi-cash-coin me-1"></i>Transactions</a>
-                    <ul class="dropdown-menu dropdown-menu-dark">
-                        <li><a class="dropdown-item" href="/deposit"><i class="bi bi-arrow-down-circle me-2"></i>Deposit</a></li>
-                        <li><a class="dropdown-item" href="/withdraw"><i class="bi bi-arrow-up-circle me-2"></i>Withdraw</a></li>
-                        <li><a class="dropdown-item" href="/transfer"><i class="bi bi-arrow-left-right me-2"></i>Transfer</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item active" href="/transactions"><i class="bi bi-clock-history me-2"></i>History</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav>
+<div th:replace="~{fragments/navbar :: navbar('transactions')}"></div>
 
 <div class="container py-5">
     <nav aria-label="breadcrumb" class="mb-4">
@@ -72,7 +49,7 @@
                 <div class="card-body d-flex align-items-center gap-3">
                     <div class="stat-icon"><i class="bi bi-arrow-down-circle-fill"></i></div>
                     <div>
-                        <div class="stat-number">₹<span th:text="${#numbers.formatDecimal(totalDeposits, 1, 'COMMA', 2, 'POINT')}">0.00</span></div>
+                        <div class="stat-number" th:text="${@currencyUtil.format(totalDeposits)}">₹0.00</div>
                         <div class="stat-label">Total Deposits</div>
                     </div>
                 </div>
@@ -83,7 +60,7 @@
                 <div class="card-body d-flex align-items-center gap-3">
                     <div class="stat-icon"><i class="bi bi-arrow-up-circle-fill"></i></div>
                     <div>
-                        <div class="stat-number">₹<span th:text="${#numbers.formatDecimal(totalWithdrawals, 1, 'COMMA', 2, 'POINT')}">0.00</span></div>
+                        <div class="stat-number" th:text="${@currencyUtil.format(totalWithdrawals)}">₹0.00</div>
                         <div class="stat-label">Total Withdrawals</div>
                     </div>
                 </div>
@@ -157,7 +134,7 @@
                         </td>
                         <td>
                             <span th:classappend="${txn.transactionType.name() == 'DEPOSIT' or txn.transactionType.name() == 'TRANSFER_RECEIVED'} ? 'text-success fw-bold' : 'text-danger fw-bold'">
-                                <span th:text="${(txn.transactionType.name() == 'DEPOSIT' or txn.transactionType.name() == 'TRANSFER_RECEIVED')} ? '+₹' : '-₹'"></span><span th:text="${#numbers.formatDecimal(txn.amount, 1, 'COMMA', 2, 'POINT')}"></span>
+                                <span th:text="${@currencyUtil.formatWithSign(txn.amount, txn.transactionType.name() == 'DEPOSIT' or txn.transactionType.name() == 'TRANSFER_RECEIVED')}">₹0.00</span>
                             </span>
                         </td>
                         <td>
@@ -176,9 +153,8 @@
                         </td>
                         <td><small class="text-muted" th:text="${txn.description}">-</small></td>
                         <td>
-                            <small class="text-success fw-semibold" th:if="${txn.balanceAfterTransaction != null}">
-                                ₹<span th:text="${#numbers.formatDecimal(txn.balanceAfterTransaction, 1, 'COMMA', 2, 'POINT')}"></span>
-                            </small>
+                            <small class="text-success fw-semibold" th:if="${txn.balanceAfterTransaction != null}"
+                                   th:text="${@currencyUtil.format(txn.balanceAfterTransaction)}">₹0.00</small>
                             <span th:unless="${txn.balanceAfterTransaction != null}" class="text-muted">-</span>
                         </td>
                         <td>

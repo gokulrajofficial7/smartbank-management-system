@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Transfer Money - SmartBank</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}">
+    <link rel="alternate icon" type="image/x-icon" th:href="@{/favicon.ico}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
@@ -11,32 +13,7 @@
 <body>
 
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark sb-navbar">
-    <div class="container-fluid">
-        <a class="navbar-brand fw-bold fs-4" href="/"><i class="bi bi-bank2 me-2"></i>SmartBank</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="/"><i class="bi bi-house me-1"></i>Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="/dashboard"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link" href="/customers"><i class="bi bi-people me-1"></i>Customers</a></li>
-                <li class="nav-item"><a class="nav-link" href="/customers/create"><i class="bi bi-person-plus me-1"></i>New Account</a></li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle active" href="#" data-bs-toggle="dropdown"><i class="bi bi-cash-coin me-1"></i>Transactions</a>
-                    <ul class="dropdown-menu dropdown-menu-dark">
-                        <li><a class="dropdown-item" href="/deposit"><i class="bi bi-arrow-down-circle me-2"></i>Deposit</a></li>
-                        <li><a class="dropdown-item" href="/withdraw"><i class="bi bi-arrow-up-circle me-2"></i>Withdraw</a></li>
-                        <li><a class="dropdown-item active" href="/transfer"><i class="bi bi-arrow-left-right me-2"></i>Transfer</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="/transactions"><i class="bi bi-clock-history me-2"></i>History</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav>
+<div th:replace="~{fragments/navbar :: navbar('transactions')}"></div>
 
 <div class="container py-5">
     <nav aria-label="breadcrumb" class="mb-4">
@@ -67,7 +44,7 @@
                         <div>
                             <small class="text-muted">Sending from:</small><br>
                             <strong th:text="${sender.name}"></strong> &bull;
-                            <small>Balance: <span class="fw-bold text-success">₹<span th:text="${#numbers.formatDecimal(sender.balance, 1, 'COMMA', 2, 'POINT')}"></span></span></small>
+                            <small>Balance: <span class="fw-bold text-success" th:text="${@currencyUtil.format(sender.balance)}">₹0.00</span></small>
                         </div>
                     </div>
 
@@ -98,6 +75,21 @@
                             </div>
                         </div>
 
+                        <!-- Payment Channel -->
+                        <div class="mb-3">
+                            <label for="channel" class="form-label fw-semibold">Payment Channel / Settlement Mode</label>
+                            <select class="form-select" id="channel" name="channel">
+                                <option value="INTERNAL" th:selected="${selectedChannel == null or selectedChannel.name() == 'INTERNAL'}">Internal Transfer (SmartBank to SmartBank)</option>
+                                <option value="UPI" th:selected="${selectedChannel != null and selectedChannel.name() == 'UPI'}">UPI — Unified Payments Interface (Max ₹1,00,000 / simulated)</option>
+                                <option value="IMPS" th:selected="${selectedChannel != null and selectedChannel.name() == 'IMPS'}">IMPS — Immediate Payment Service 24x7 (Max ₹5,00,000 / simulated)</option>
+                                <option value="NEFT" th:selected="${selectedChannel != null and selectedChannel.name() == 'NEFT'}">NEFT — National Electronic Funds Transfer (Max ₹10,00,000 / simulated)</option>
+                                <option value="RTGS" th:selected="${selectedChannel != null and selectedChannel.name() == 'RTGS'}">RTGS — Real Time Gross Settlement (Mandatory Min ₹2,00,000 / simulated)</option>
+                            </select>
+                            <div class="form-text text-muted small">
+                                <i class="bi bi-shield-check text-primary me-1"></i>Regulated under RBI and NPCI clearing guidelines (Simulated environment).
+                            </div>
+                        </div>
+
                         <!-- Amount -->
                         <div class="mb-3">
                             <label for="amount" class="form-label fw-semibold">Transfer Amount <span class="text-danger">*</span></label>
@@ -117,6 +109,7 @@
                                 <button type="button" class="btn btn-outline-warning btn-sm" onclick="setAmount(5000)">₹5,000</button>
                                 <button type="button" class="btn btn-outline-warning btn-sm" onclick="setAmount(10000)">₹10,000</button>
                                 <button type="button" class="btn btn-outline-warning btn-sm" onclick="setAmount(50000)">₹50,000</button>
+                                <button type="button" class="btn btn-outline-warning btn-sm" onclick="setAmount(200000)">₹2,00,000 (RTGS)</button>
                             </div>
                         </div>
 
@@ -140,7 +133,9 @@
                             <button type="submit" class="btn btn-warning text-dark px-4 fw-semibold flex-grow-1">
                                 <i class="bi bi-check-circle me-2"></i>Confirm Transfer
                             </button>
-                            <a href="/customers" class="btn btn-outline-secondary px-4">Cancel</a>
+                            <a href="/customers" class="btn btn-outline-secondary px-4" sec:authorize="hasAnyRole('TELLER', 'CUSTOMER_SERVICE_OFFICER', 'BRANCH_MANAGER', 'BANK_ADMIN', 'SUPER_ADMIN')">Cancel</a>
+                            <a href="/customer/dashboard" class="btn btn-outline-secondary px-4" sec:authorize="hasRole('CUSTOMER')">Cancel</a>
+                            <a href="/" class="btn btn-outline-secondary px-4" sec:authorize="!isAuthenticated()">Cancel</a>
                         </div>
                     </form>
                 </div>
@@ -158,6 +153,25 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
 <script>
     function setAmount(val) { document.getElementById('amount').value = val; }
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form[action*="/transfer"]');
+        if (form) {
+            let isSubmitting = false;
+            form.addEventListener('submit', function(e) {
+                if (isSubmitting) {
+                    e.preventDefault();
+                    return false;
+                }
+                isSubmitting = true;
+                const btn = form.querySelector('button[type="submit"]');
+                if (btn) {
+                    btn.classList.add('disabled');
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Processing...';
+                    setTimeout(function() { btn.disabled = true; }, 20);
+                }
+            });
+        }
+    });
 </script>
 </body>
 </html>

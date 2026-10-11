@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${customer.name} + ' - SmartBank'">Customer Details</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}">
+    <link rel="alternate icon" type="image/x-icon" th:href="@{/favicon.ico}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
@@ -11,32 +13,7 @@
 <body>
 
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark sb-navbar">
-    <div class="container-fluid">
-        <a class="navbar-brand fw-bold fs-4" href="/"><i class="bi bi-bank2 me-2"></i>SmartBank</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="/"><i class="bi bi-house me-1"></i>Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="/dashboard"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link active" href="/customers"><i class="bi bi-people me-1"></i>Customers</a></li>
-                <li class="nav-item"><a class="nav-link" href="/customers/create"><i class="bi bi-person-plus me-1"></i>New Account</a></li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-cash-coin me-1"></i>Transactions</a>
-                    <ul class="dropdown-menu dropdown-menu-dark">
-                        <li><a class="dropdown-item" href="/deposit"><i class="bi bi-arrow-down-circle me-2"></i>Deposit</a></li>
-                        <li><a class="dropdown-item" href="/withdraw"><i class="bi bi-arrow-up-circle me-2"></i>Withdraw</a></li>
-                        <li><a class="dropdown-item" href="/transfer"><i class="bi bi-arrow-left-right me-2"></i>Transfer</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="/transactions"><i class="bi bi-clock-history me-2"></i>History</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav>
+<div th:replace="~{fragments/navbar :: navbar('customers')}"></div>
 
 <div class="container py-5">
 
@@ -44,7 +21,8 @@
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Home</a></li>
-            <li class="breadcrumb-item"><a href="/customers" class="text-decoration-none">Customers</a></li>
+            <li class="breadcrumb-item" sec:authorize="hasAnyRole('TELLER', 'CUSTOMER_SERVICE_OFFICER', 'BRANCH_MANAGER', 'BANK_ADMIN', 'SUPER_ADMIN')"><a href="/customers" class="text-decoration-none">Customers</a></li>
+            <li class="breadcrumb-item" sec:authorize="hasRole('CUSTOMER')"><a href="/customer/dashboard" class="text-decoration-none">Dashboard</a></li>
             <li class="breadcrumb-item active" th:text="${customer.name}"></li>
         </ol>
     </nav>
@@ -70,9 +48,7 @@
                     <p class="text-muted mb-3" th:text="${customer.email}"></p>
                     <div class="balance-display mb-3">
                         <small class="text-muted d-block mb-1">Current Balance</small>
-                        <span class="balance-amount text-success">
-                            ₹<span th:text="${#numbers.formatDecimal(customer.balance, 1, 'COMMA', 2, 'POINT')}"></span>
-                        </span>
+                        <span class="balance-amount text-success" th:text="${@currencyUtil.format(customer.balance)}">₹0.00</span>
                     </div>
                     <span class="badge bg-success px-3 py-2 mb-3"><i class="bi bi-shield-check me-1"></i>Active Account</span>
                 </div>
@@ -118,11 +94,13 @@
                     <a th:href="@{/transfer(accountNumber=${customer.accountNumber})}" class="btn btn-warning text-dark">
                         <i class="bi bi-arrow-left-right me-2"></i>Transfer Money
                     </a>
-                    <hr class="my-1">
-                    <a th:href="@{/customers/{id}/edit(id=${customer.id})}" class="btn btn-outline-primary">
+                    <hr class="my-1" sec:authorize="hasAnyRole('CUSTOMER_SERVICE_OFFICER', 'BRANCH_MANAGER', 'BANK_ADMIN', 'SUPER_ADMIN')">
+                    <a th:href="@{/customers/{id}/edit(id=${customer.id})}" class="btn btn-outline-primary"
+                       sec:authorize="hasAnyRole('CUSTOMER_SERVICE_OFFICER', 'BRANCH_MANAGER', 'BANK_ADMIN', 'SUPER_ADMIN')">
                         <i class="bi bi-pencil me-2"></i>Edit Details
                     </a>
-                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal"
+                            sec:authorize="hasAnyRole('BRANCH_MANAGER', 'BANK_ADMIN', 'SUPER_ADMIN')">
                         <i class="bi bi-trash me-2"></i>Delete Account
                     </button>
                 </div>
@@ -164,7 +142,7 @@
                                 <tr th:each="txn, iterStat : ${transactions}">
                                     <td class="text-muted small" th:text="${iterStat.count}"></td>
                                     <td>
-                                        <span th:switch="${txn.transactionType.name()}">
+                                        <span th:switch="${txn.transactionType != null ? txn.transactionType.name() : ''}">
                                             <span th:case="'DEPOSIT'" class="badge bg-success">
                                                 <i class="bi bi-arrow-down-circle me-1"></i>Deposit
                                             </span>
@@ -177,18 +155,23 @@
                                             <span th:case="'TRANSFER_RECEIVED'" class="badge bg-info text-dark">
                                                 <i class="bi bi-arrow-left-circle me-1"></i>Transfer In
                                             </span>
+                                            <span th:case="'TRANSFER'" class="badge bg-warning text-dark">
+                                                <i class="bi bi-arrow-left-right me-1"></i>Transfer
+                                            </span>
+                                            <span th:case="*" class="badge bg-secondary" th:text="${txn.transactionType}">
+                                                Other
+                                            </span>
                                         </span>
                                     </td>
                                     <td>
-                                        <span th:classappend="${txn.transactionType.name() == 'DEPOSIT' or txn.transactionType.name() == 'TRANSFER_RECEIVED'} ? 'text-success fw-semibold' : 'text-danger fw-semibold'">
-                                            <span th:text="${txn.transactionType.name() == 'DEPOSIT' or txn.transactionType.name() == 'TRANSFER_RECEIVED'} ? '+' : '-'"></span>₹<span th:text="${#numbers.formatDecimal(txn.amount, 1, 'COMMA', 2, 'POINT')}"></span>
+                                        <span th:classappend="${txn.transactionType != null and (txn.transactionType.name() == 'DEPOSIT' or txn.transactionType.name() == 'TRANSFER_RECEIVED')} ? 'text-success fw-semibold' : 'text-danger fw-semibold'">
+                                            <span th:text="${@currencyUtil.formatWithSign(txn.amount, txn.transactionType != null and (txn.transactionType.name() == 'DEPOSIT' or txn.transactionType.name() == 'TRANSFER_RECEIVED'))}">₹0.00</span>
                                         </span>
                                     </td>
                                     <td><small class="text-muted" th:text="${txn.description}">-</small></td>
                                     <td>
-                                        <small class="text-success fw-semibold" th:if="${txn.balanceAfterTransaction != null}">
-                                            ₹<span th:text="${#numbers.formatDecimal(txn.balanceAfterTransaction, 1, 'COMMA', 2, 'POINT')}"></span>
-                                        </small>
+                                        <small class="text-success fw-semibold" th:if="${txn.balanceAfterTransaction != null}"
+                                               th:text="${@currencyUtil.format(txn.balanceAfterTransaction)}">₹0.00</small>
                                         <small class="text-muted" th:unless="${txn.balanceAfterTransaction != null}">-</small>
                                     </td>
                                     <td>
@@ -196,10 +179,13 @@
                                         <small class="text-muted" th:text="${#temporals.format(txn.transactionDate, 'HH:mm')}"></small>
                                     </td>
                                     <td>
-                                        <span th:switch="${txn.status.name()}">
+                                        <span th:switch="${txn.status != null ? txn.status.name() : ''}">
                                             <span th:case="'SUCCESS'" class="badge bg-success">Success</span>
                                             <span th:case="'FAILED'" class="badge bg-danger">Failed</span>
                                             <span th:case="'PENDING'" class="badge bg-warning text-dark">Pending</span>
+                                            <span th:case="'PENDING_APPROVAL'" class="badge bg-warning text-dark">Pending Approval</span>
+                                            <span th:case="'REJECTED'" class="badge bg-danger">Rejected</span>
+                                            <span th:case="*" class="badge bg-secondary" th:text="${txn.status}">Other</span>
                                         </span>
                                     </td>
                                 </tr>
@@ -213,7 +199,7 @@
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
+<div class="modal fade" id="deleteModal" tabindex="-1" sec:authorize="hasAnyRole('BRANCH_MANAGER', 'BANK_ADMIN', 'SUPER_ADMIN')">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-0">
@@ -226,7 +212,7 @@
                     <small><i class="bi bi-exclamation-circle me-1"></i>This action is <strong>irreversible</strong>. All data including transaction history will be permanently deleted.</small>
                 </div>
                 <p class="mb-0"><strong>Account:</strong> <span th:text="${customer.accountNumber}"></span></p>
-                <p><strong>Balance:</strong> ₹<span th:text="${#numbers.formatDecimal(customer.balance, 1, 'COMMA', 2, 'POINT')}"></span></p>
+                <p><strong>Balance:</strong> <span th:text="${@currencyUtil.format(customer.balance)}">₹0.00</span></p>
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>

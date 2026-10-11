@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBank — Branch Customer Profile</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/navbar :: navbar('manager')}"></div>
+
+<div class="container py-4">
+
+    <!-- Header Navigation -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <a th:href="@{/manager/customers}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Branch Customers
+                </a>
+                <h3 class="fw-bold mb-0" th:text="${customer.name}">Customer Name</h3>
+                <span class="badge bg-primary" th:if="${customer.branch != null}"
+                      th:text="${customer.branch.branchName + ' (' + customer.branch.branchCode + ')'}">Branch</span>
+            </div>
+            <p class="text-muted small mb-0">
+                Authorized Branch Manager read-only customer oversight and verification record
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a th:href="@{/manager/dashboard}" class="btn btn-outline-primary btn-sm fw-semibold">
+                <i class="bi bi-speedometer2 me-1"></i> Manager Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left: Customer Information Summary -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body text-center p-4">
+                    <div class="avatar-lg rounded-circle bg-primary bg-opacity-10 text-primary fw-bold mx-auto mb-3 d-flex align-items-center justify-content-center"
+                         style="width: 72px; height: 72px; font-size: 1.8rem;"
+                         th:text="${#strings.substring(customer.name, 0, 1).toUpperCase()}">U</div>
+                    <h5 class="fw-bold mb-1" th:text="${customer.name}">Customer Name</h5>
+                    <p class="text-muted small mb-3" th:text="${customer.email}">customer@example.com</p>
+
+                    <div class="d-flex justify-content-center gap-2 mb-3">
+                        <span th:switch="${customer.status != null ? customer.status.name() : 'ACTIVE'}">
+                            <span th:case="'ACTIVE'" class="badge bg-success px-3 py-2">
+                                <i class="bi bi-shield-check me-1"></i>Active Customer
+                            </span>
+                            <span th:case="'PENDING_VERIFICATION'" class="badge bg-warning text-dark px-3 py-2">
+                                <i class="bi bi-hourglass me-1"></i>Pending Verification
+                            </span>
+                            <span th:case="*" class="badge bg-secondary px-3 py-2" th:text="${customer.status}">Status</span>
+                        </span>
+                        <span th:switch="${customer.kycStatus != null ? customer.kycStatus.name() : 'VERIFIED'}">
+                            <span th:case="'VERIFIED'" class="badge bg-info text-dark px-3 py-2">
+                                <i class="bi bi-patch-check-fill me-1"></i>KYC Verified
+                            </span>
+                            <span th:case="*" class="badge bg-secondary px-3 py-2" th:text="${customer.kycStatus}">KYC</span>
+                        </span>
+                    </div>
+
+                    <div class="p-3 bg-light rounded text-start">
+                        <div class="mb-2">
+                            <small class="text-muted d-block">Masked Account Number</small>
+                            <span class="font-monospace fw-bold text-dark" th:text="${maskedAccountNumber}">•••• •••• 1234</span>
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted d-block">Customer Identification</small>
+                            <span class="font-monospace small" th:text="${customer.customerNumber != null ? customer.customerNumber : 'CUST-' + customer.id}">CUST-100</span>
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted d-block">Assigned Branch</small>
+                            <span class="fw-semibold text-dark" th:text="${customer.branch != null ? customer.branch.branchName : 'Main Branch'}">Branch</span>
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted d-block">Phone Number</small>
+                            <span class="small" th:text="${customer.phone != null ? customer.phone : '-'}">9876543210</span>
+                        </div>
+                        <div>
+                            <small class="text-muted d-block">Member Since</small>
+                            <span class="small" th:text="${customer.createdAt != null ? #temporals.format(customer.createdAt, 'dd MMMM yyyy') : '-'}">01 Jan 2026</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Read-Only Notice -->
+            <div class="card border-0 bg-white shadow-sm p-3">
+                <div class="d-flex align-items-start gap-2">
+                    <i class="bi bi-info-circle-fill text-primary fs-5 mt-1"></i>
+                    <div>
+                        <h6 class="fw-bold mb-1 text-dark">Access Policy Notice</h6>
+                        <small class="text-muted">
+                            This customer record is served under strict branch-level isolation. Branch Managers cannot modify customer balances directly;
+                            dual-control approval queues must be used for transaction authorization.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Linked Accounts and Recent Activity -->
+        <div class="col-lg-8">
+            <!-- Linked Accounts Card -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-wallet2 me-2 text-primary"></i>Customer Accounts Overview
+                    </h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Account Number</th>
+                                <th>Type</th>
+                                <th>Currency</th>
+                                <th>Status</th>
+                                <th class="text-end pe-3">Current Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${accounts == null or accounts.isEmpty()}">
+                                <td><span class="font-monospace" th:text="${maskedAccountNumber}">•••• •••• 1234</span></td>
+                                <td><span class="badge bg-secondary">SAVINGS</span></td>
+                                <td>INR</td>
+                                <td><span class="badge bg-success">ACTIVE</span></td>
+                                <td class="text-end pe-3 fw-bold text-success" th:text="${@currencyUtil.format(customer.balance)}">₹0.00</td>
+                            </tr>
+                            <tr th:each="acc : ${accounts}">
+                                <td>
+                                    <span class="font-monospace fw-semibold"
+                                          th:text="${@maskUtil.maskAccountNumber(acc.accountNumber)}">•••• •••• 1234</span>
+                                </td>
+                                <td><span class="badge bg-secondary" th:text="${acc.accountType}">SAVINGS</span></td>
+                                <td th:text="${acc.currency}">INR</td>
+                                <td>
+                                    <span class="badge"
+                                          th:classappend="${acc.status.name() == 'ACTIVE' ? 'bg-success' : 'bg-secondary'}"
+                                          th:text="${acc.status}">ACTIVE</span>
+                                </td>
+                                <td class="text-end pe-3 font-monospace fw-bold text-success"
+                                    th:text="${@currencyUtil.format(acc.balance)}">₹0.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recent Transaction History (Read-Only) -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-clock-history me-2 text-primary"></i>Recent Transaction Activity
+                    </h5>
+                    <span class="badge bg-light text-dark border"
+                          th:text="${transactions != null ? transactions.size() : 0} + ' Transactions'">0 Transactions</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Type</th>
+                                <th class="text-end">Amount</th>
+                                <th>Description</th>
+                                <th>Date &amp; Time</th>
+                                <th class="text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${transactions == null or transactions.isEmpty()}">
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    No recent transactions found for this customer.
+                                </td>
+                            </tr>
+                            <tr th:each="txn : ${transactions}">
+                                <td>
+                                    <span class="badge"
+                                          th:classappend="${txn.transactionType.name() == 'DEPOSIT' or txn.transactionType.name() == 'TRANSFER_RECEIVED' ? 'bg-success' : 'bg-primary'}"
+                                          th:text="${txn.transactionType}">TYPE</span>
+                                </td>
+                                <td class="text-end font-monospace fw-bold"
+                                    th:classappend="${txn.transactionType.name() == 'DEPOSIT' or txn.transactionType.name() == 'TRANSFER_RECEIVED' ? 'text-success' : 'text-danger'}">
+                                    <span th:text="${@currencyUtil.formatWithSign(txn.amount, txn.transactionType.name() == 'DEPOSIT' or txn.transactionType.name() == 'TRANSFER_RECEIVED')}">₹0.00</span>
+                                </td>
+                                <td class="small text-muted" th:text="${txn.description != null ? txn.description : '-'}">-</td>
+                                <td class="small" th:text="${#temporals.format(txn.transactionDate, 'dd MMM yyyy HH:mm')}">Date</td>
+                                <td class="text-center">
+                                    <span class="badge"
+                                          th:classappend="${txn.status.name() == 'SUCCESS' ? 'bg-success' : 'bg-warning text-dark'}"
+                                          th:text="${txn.status}">SUCCESS</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

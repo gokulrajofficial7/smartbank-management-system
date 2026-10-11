@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBank — Secure Login</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}">
+    <link rel="alternate icon" type="image/x-icon" th:href="@{/favicon.ico}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0a192f 0%, #172a45 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .login-card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+            max-width: 900px;
+            width: 100%;
+        }
+        .login-left {
+            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+            color: white;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .login-right {
+            padding: 40px;
+        }
+        .role-badge {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .role-badge:hover {
+            transform: scale(1.05);
+        }
+        @media (max-width: 576px) {
+            .login-right {
+                padding: 24px 16px;
+            }
+            .login-card {
+                border-radius: 12px;
+                margin: 0 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="login-card row g-0">
+                <!-- Left Brand Side -->
+                <div class="col-md-5 login-left d-none d-md-flex">
+                    <div>
+                        <div class="d-flex align-items-center mb-4">
+                            <i class="bi bi-bank2 fs-2 me-2"></i>
+                            <h3 class="fw-bold mb-0">SmartBank</h3>
+                        </div>
+                        <h4 class="fw-bold mb-3">Enterprise Banking & Security Refactor</h4>
+                        <p class="text-white-50">Controlled Banking Architecture with Zero-Trust Authorization, Double-Entry Ledger, and Maker-Checker Dual Control.</p>
+                        <hr class="border-white-50 my-4">
+                        <div class="small">
+                            <div class="mb-2"><i class="bi bi-shield-check text-warning me-2"></i> Role-Based Access Control (13 Roles)</div>
+                            <div class="mb-2"><i class="bi bi-lock-fill text-warning me-2"></i> Zero IDOR / Customer Data Isolation</div>
+                            <div class="mb-2"><i class="bi bi-journal-text text-warning me-2"></i> Double-Entry Bookkeeping Ledger</div>
+                            <div class="mb-2"><i class="bi bi-person-check text-warning me-2"></i> Strict Maker != Checker Dual Approval</div>
+                        </div>
+                    </div>
+                    <div class="small text-white-50 mt-4">
+                        &copy; 2026 SmartBank Core Banking System
+                    </div>
+                </div>
+
+                <!-- Right Form Side -->
+                <div class="col-md-7 login-right">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="fw-bold text-dark mb-0">Sign In</h3>
+                        <a th:href="@{/}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i> Home</a>
+                    </div>
+
+                    <!-- Alerts -->
+                    <div th:if="${errorMessage}" class="alert alert-danger py-2 small" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <span th:text="${errorMessage}">Invalid credentials</span>
+                    </div>
+                    <div th:if="${successMessage}" class="alert alert-success py-2 small" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        <span th:text="${successMessage}">Logged out successfully</span>
+                    </div>
+
+                    <!-- Login Form -->
+                    <form th:action="@{/login}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                        <div class="mb-3">
+                            <label for="username" class="form-label fw-semibold text-secondary small">Username / Customer ID</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input type="text" class="form-control" id="username" name="username" placeholder="e.g. customer_a" required autofocus>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password" class="form-label fw-semibold text-secondary small">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-key"></i></span>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold mb-3">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Access Portal
+                        </button>
+
+                        <div class="text-center small mb-3">
+                            Don't have an account? <a th:href="@{/register}" class="fw-semibold text-decoration-none">Open an Account Online</a>
+                        </div>
+                    </form>
+
+                    <!-- Fast Quick-Fill Test Credentials -->
+                    <div class="card bg-light border-0 mt-3 p-3">
+                        <div class="small fw-bold text-muted mb-2 text-uppercase" style="font-size: 0.75rem;">
+                            <i class="bi bi-info-circle me-1"></i> Quick Test Credentials (Click to auto-fill)
+                        </div>
+                        <div class="d-flex flex-wrap gap-1">
+                            <button class="btn btn-sm btn-outline-primary py-0 role-badge" onclick="fillCreds('customer_a', 'Customer@123')">Customer A</button>
+                            <button class="btn btn-sm btn-outline-primary py-0 role-badge" onclick="fillCreds('customer_b', 'Customer@123')">Customer B</button>
+                            <button class="btn btn-sm btn-outline-success py-0 role-badge" onclick="fillCreds('teller_a', 'Teller@123')">Teller</button>
+                            <button class="btn btn-sm btn-outline-warning py-0 role-badge" onclick="fillCreds('manager_a', 'Manager@123')">Manager</button>
+                            <button class="btn btn-sm btn-outline-info py-0 role-badge" onclick="fillCreds('compliance_a', 'Compliance@123')">Compliance</button>
+                            <button class="btn btn-sm btn-outline-dark py-0 role-badge" onclick="fillCreds('admin_a', 'Admin@123')">Bank Admin</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function fillCreds(u, p) {
+        document.getElementById('username').value = u;
+        document.getElementById('password').value = p;
+    }
+</script>
+</body>
+</html>

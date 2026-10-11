@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBank — Bank Administration</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}">
+    <link rel="alternate icon" type="image/x-icon" th:href="@{/favicon.ico}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/navbar :: navbar('admin-dashboard')}"></div>
+
+<div class="container py-4">
+    <!-- Flash Messages -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1">System Administration & RBAC</h3>
+            <p class="text-muted small mb-0">Role configurations, transaction limits, and user identity management</p>
+        </div>
+        <a th:href="@{/admin/users}" class="btn btn-primary fw-semibold">
+            <i class="bi bi-people-fill me-1"></i> Manage User Accounts (<span th:text="${users.size()}">0</span>)
+        </a>
+    </div>
+
+    <!-- Transaction Limits Section -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-sliders me-2 text-primary"></i> Transaction Limit & Dual-Control Thresholds</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Role</th>
+                        <th class="text-end">Single Transaction Limit</th>
+                        <th class="text-end">Daily Limit</th>
+                        <th class="text-end">Dual-Control Approval Threshold</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="lim : ${limits}">
+                        <td><span class="badge bg-primary" th:text="${lim.role}">ROLE</span></td>
+                        <td class="text-end font-monospace fw-bold" th:text="${@currencyUtil.format(lim.singleTransactionLimit)}">₹0.00</td>
+                        <td class="text-end font-monospace fw-bold" th:text="${@currencyUtil.format(lim.dailyLimit)}">₹0.00</td>
+                        <td class="text-end font-monospace fw-bold text-danger" th:text="${@currencyUtil.format(lim.approvalThreshold)}">₹0.00</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" th:data-bs-target="'#editLimit' + ${lim.id}">
+                                <i class="bi bi-pencil"></i> Edit
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

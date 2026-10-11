@@ -1,6 +1,6 @@
 package com.smartbank.exception;
 
-public class CustomerNotFoundException extends RuntimeException {
+public class CustomerNotFoundException extends BankingException {
 
     public CustomerNotFoundException(String message) {
         super(message);

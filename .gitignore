@@ -34,3 +34,8 @@ target/
 .maven/
 data/
 *.log
+scratch/
+*.env
+.env
+*.tmp
+*.bak

@@ -462,15 +462,225 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: #64748b; }
 
 /* ============================================
-   RESPONSIVE
+   RESPONSIVE & MOBILE ACCESSIBILITY AUDIT
    ============================================ */
+
+/* 1. Touch Targets (Minimum 44x44px for Mobile) */
 @media (max-width: 768px) {
-    .sb-hero { min-height: 360px; }
-    .stat-number { font-size: 1.4rem; }
-    .hero-icon { font-size: 3rem !important; }
-    .display-3 { font-size: 2rem; }
-    .card-body { padding: 1rem; }
+    .btn {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+
+    .btn-sm {
+        min-height: 38px;
+    }
+
+    .form-control,
+    .form-select,
+    .input-group-text {
+        min-height: 44px;
+        font-size: 16px; /* Prevents iOS auto-zoom on input focus */
+    }
+
+    .navbar-toggler {
+        min-height: 44px;
+        min-width: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-color: rgba(255, 255, 255, 0.4) !important;
+    }
+
+    .navbar-nav .nav-link {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        padding: 0.65rem 1rem !important;
+    }
+
+    .dropdown-item {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        padding: 0.65rem 1.2rem;
+    }
+}
+
+/* 2. Tablet & Medium Screens (768px - 991px) */
+@media (max-width: 991px) {
+    .sb-navbar {
+        padding: 0.75rem 1rem;
+    }
+
+    .sb-navbar .navbar-collapse {
+        background: #162a45;
+        margin: 0.75rem -1rem -0.75rem -1rem;
+        padding: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0 0 var(--sb-radius) var(--sb-radius);
+    }
+
+    .sb-navbar .dropdown-menu {
+        background: #0f1d30;
+        box-shadow: none;
+        margin-top: 0.25rem;
+        border-left: 2px solid var(--sb-primary-light);
+        max-width: 100%;
+    }
+
+    .sb-navbar .dropdown-item {
+        white-space: normal;
+        word-break: break-word;
+        padding: 0.55rem 1rem;
+    }
+}
+
+/* 3. Small Mobile Devices (481px - 768px) */
+@media (max-width: 768px) {
+    .sb-hero { min-height: 340px; padding: 2rem 0; }
+    .stat-number { font-size: 1.35rem; }
+    .hero-icon { font-size: 2.8rem !important; }
+    .display-3 { font-size: 1.85rem; }
+    .display-4 { font-size: 1.75rem; }
+    .card-body { padding: 1.15rem; }
     .info-row { flex-direction: column; align-items: flex-start; gap: 0.2rem; }
+
+    /* Button and Form Wrapping */
+    .d-flex.gap-3,
+    .d-flex.gap-2 {
+        flex-wrap: wrap;
+    }
+
+    .d-flex.justify-content-between {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    /* Table horizontal overflow handling */
+    .table-responsive {
+        -webkit-overflow-scrolling: touch;
+        overflow-x: auto;
+        position: relative;
+    }
+
+    .table-responsive table {
+        min-width: 580px;
+    }
+
+    /* Prevent clipping and splitting of financial figures and status badges */
+    .table td.text-end,
+    .table th.text-end,
+    .stat-number,
+    .badge,
+    .font-monospace {
+        white-space: nowrap;
+    }
+}
+
+/* 4. Extra Small Mobile Devices (376px - 480px) */
+@media (max-width: 480px) {
+    .container, .container-fluid {
+        padding-left: 0.85rem;
+        padding-right: 0.85rem;
+    }
+
+    .sb-hero {
+        min-height: 300px;
+        padding: 1.5rem 0;
+    }
+
+    .sb-hero h1 {
+        font-size: 1.65rem;
+    }
+
+    .stat-number {
+        font-size: 1.25rem;
+    }
+
+    .kpi-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 1.3rem;
+    }
+
+    .card-header {
+        padding: 0.85rem 1rem !important;
+    }
+
+    .card-body {
+        padding: 0.95rem !important;
+    }
+
+    .bank-card {
+        padding: 18px !important;
+    }
+
+    .bank-card h2 {
+        font-size: 1.6rem !important;
+    }
+
+    /* Modal adjustments on small screens */
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+
+    /* Full width buttons in form footers */
+    .card-body form .d-flex.gap-3 > .btn,
+    .card-body form .d-flex.gap-3 > a.btn {
+        flex: 1 1 100%;
+        width: 100%;
+    }
+
+    /* Quick select buttons wrap cleanly */
+    .d-flex.gap-2.flex-wrap > .btn {
+        flex: 1 1 calc(50% - 0.5rem);
+        font-size: 0.8rem;
+        padding: 0.4rem 0.6rem;
+    }
+}
+
+/* 5. Ultra Compact Mobile Devices (320px - 375px) */
+@media (max-width: 375px) {
+    body {
+        font-size: 0.875rem;
+    }
+
+    .navbar-brand {
+        font-size: 1.15rem !important;
+    }
+
+    .stat-number {
+        font-size: 1.15rem;
+    }
+
+    .card-body {
+        padding: 0.75rem !important;
+    }
+
+    .bank-card {
+        padding: 14px !important;
+    }
+
+    .bank-card h2 {
+        font-size: 1.35rem !important;
+    }
+
+    .bank-card h4 {
+        font-size: 1.05rem !important;
+    }
+
+    h3 { font-size: 1.35rem; }
+    h4 { font-size: 1.2rem; }
+    h5 { font-size: 1.05rem; }
+
+    .d-flex.gap-2.flex-wrap > .btn {
+        flex: 1 1 100%;
+    }
 }
 
 /* ============================================

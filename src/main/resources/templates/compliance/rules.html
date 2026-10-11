@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regulatory Rules & Limits Matrix - SmartBank Compliance</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/navbar :: navbar('compliance')}"></div>
+
+<div class="container-fluid py-4 px-lg-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/compliance/dashboard}">Compliance Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Regulatory Compliance Rules Matrix</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="card shadow-sm border-0 mb-4 bg-primary text-white">
+        <div class="card-body p-4">
+            <h3 class="fw-bold mb-1"><i class="bi bi-shield-check me-2"></i>Statutory & Operational Compliance Matrix</h3>
+            <p class="mb-0 text-white-50">Authoritative rules enforced by the centralized compliance rules engine across all payment channels and accounting workflows.</p>
+        </div>
+    </div>
+
+    <!-- Active Rules Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-list-check text-primary me-2"></i>Registered Rules</h5>
+            <span class="badge bg-secondary" th:text="${#lists.size(rules)} + ' Rules Active'">0 Rules Active</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Rule Code & Name</th>
+                            <th>Category</th>
+                            <th>Channel</th>
+                            <th>Transaction Type</th>
+                            <th>Min / Max Thresholds</th>
+                            <th>Aggregation</th>
+                            <th>Statutory / Legal Citation</th>
+                            <th class="pe-3">Guidance / Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="r : ${rules}">
+                            <td class="ps-3">
+                                <strong class="text-dark d-block" th:text="${r.ruleName}">Rule Name</strong>
+                                <span class="badge bg-light text-dark border font-monospace small" th:text="${r.ruleCode}">CODE</span>
+                            </td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${r.category.name() == 'RBI_STATUTORY' ? 'bg-danger' : (r.category.name() == 'BANK_OPERATIONAL' ? 'bg-primary' : (r.category.name() == 'FRAUD_RISK_CONTROL' ? 'bg-warning text-dark' : 'bg-info text-dark'))}"
+                                      th:text="${r.category}">CATEGORY</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary" th:text="${r.channel != null ? r.channel.displayName : 'ALL'}">UPI</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border" th:text="${r.transactionType != null ? r.transactionType : 'ALL'}">TRANSFER</span>
+                            </td>
+                            <td>
+                                <div class="small">
+                                    <span th:if="${r.minThreshold != null}">Min: <strong th:text="${@currencyUtil.format(r.minThreshold)}">₹0.00</strong><br></span>
+                                    <span th:if="${r.maxThreshold != null}">Max: <strong th:text="${@currencyUtil.format(r.maxThreshold)}">₹0.00</strong></span>
+                                </div>
+                            </td>
+                            <td class="small text-muted" th:text="${r.aggregationPeriod != null ? r.aggregationPeriod.description : 'Per Txn'}">Per Txn</td>
+                            <td class="small text-muted font-monospace" th:text="${r.legalCitation}">Citation</td>
+                            <td class="pe-3 small text-secondary" th:text="${r.description}">Description</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="sb-footer py-3 mt-5">
+    <div class="container text-center">
+        <small><i class="bi bi-bank2 me-1"></i>SmartBank &copy; 2025 | Centralized Compliance Engine</small>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

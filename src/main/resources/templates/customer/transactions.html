@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBank — My Transactions</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/navbar :: navbar('transactions')}"></div>
+
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a th:href="@{/customer/dashboard}">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Transaction History</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-clock-history text-warning me-2"></i>My Transactions</h3>
+            <p class="text-muted small mb-0">Complete audit trail of deposits, withdrawals, and fund transfers</p>
+        </div>
+        <div>
+            <a th:href="@{/customer/transfer}" class="btn btn-primary btn-sm fw-semibold">
+                <i class="bi bi-send me-1"></i> New Transfer
+            </a>
+        </div>
+    </div>
+
+    <!-- Transactions Card -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-journal-text me-2 text-primary"></i>Activity Log</h5>
+            <span class="badge bg-secondary" th:text="${transactions.size()} + ' records'">0 records</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Reference #</th>
+                            <th>Type</th>
+                            <th>Channel</th>
+                            <th>Description</th>
+                            <th class="text-end">Amount</th>
+                            <th class="text-end">Balance After</th>
+                            <th class="text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(transactions)}">
+                            <td colspan="8" class="text-center py-4 text-muted">No transactions found for this account.</td>
+                        </tr>
+                        <tr th:each="txn : ${transactions}">
+                            <td class="small text-nowrap" th:text="${#temporals.format(txn.transactionDate, 'yyyy-MM-dd HH:mm')}">Date</td>
+                            <td class="small font-monospace" th:text="${txn.referenceNumber != null ? txn.referenceNumber : 'TXN-' + txn.id}">Ref</td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${txn.transactionType.name() == 'DEPOSIT' or txn.transactionType.name() == 'TRANSFER_RECEIVED' ? 'bg-success' : 'bg-primary'}"
+                                      th:text="${txn.transactionType}">TYPE</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border small" th:text="${txn.channel != null ? txn.channel : 'ONLINE'}">ONLINE</span>
+                            </td>
+                            <td class="small" th:text="${txn.description != null ? txn.description : '-'}">Description</td>
+                            <td class="text-end fw-bold font-monospace"
+                                th:classappend="${txn.transactionType.name() == 'DEPOSIT' or txn.transactionType.name() == 'TRANSFER_RECEIVED'} ? 'text-success' : 'text-danger'">
+                                <span th:text="${@currencyUtil.formatWithSign(txn.amount, txn.transactionType.name() == 'DEPOSIT' or txn.transactionType.name() == 'TRANSFER_RECEIVED')}"></span>
+                            </td>
+                            <td class="text-end font-monospace small text-muted" th:text="${txn.balanceAfterTransaction != null ? @currencyUtil.format(txn.balanceAfterTransaction) : '-'}"></td>
+                            <td class="text-center">
+                                <span class="badge"
+                                      th:classappend="${txn.status.name() == 'SUCCESS' ? 'bg-success' : (txn.status.name() == 'PENDING_APPROVAL' ? 'bg-warning text-dark' : 'bg-danger')}"
+                                      th:text="${txn.status}">STATUS</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

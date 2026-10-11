@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBank — My Accounts</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .account-card {
+            background: #ffffff;
+            border-radius: 12px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #e2e8f0;
+        }
+        .account-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/navbar :: navbar('accounts')}"></div>
+
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a th:href="@{/customer/dashboard}">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">My Accounts</li>
+        </ol>
+    </nav>
+
+    <!-- Header & Summary -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-wallet2 text-success me-2"></i>My Bank Accounts</h3>
+            <p class="text-muted small mb-0">Deposit accounts, ledger balances, and operational statuses</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a th:href="@{/customer/transfer}" class="btn btn-primary btn-sm fw-semibold">
+                <i class="bi bi-arrow-left-right me-1"></i> Transfer Funds
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary Metrics -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm p-3">
+                <div class="d-flex align-items-center">
+                    <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle me-3">
+                        <i class="bi bi-cash-stack fs-3"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small">Total Liquid Balance</div>
+                        <h4 class="fw-bold mb-0 text-dark" th:text="${@currencyUtil.format(totalBalance)}">₹0.00</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm p-3">
+                <div class="d-flex align-items-center">
+                    <div class="bg-success bg-opacity-10 text-success p-3 rounded-circle me-3">
+                        <i class="bi bi-bank fs-3"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small">Linked Accounts</div>
+                        <h4 class="fw-bold mb-0 text-dark"><span th:text="${accounts.size()}">1</span> Accounts</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm p-3">
+                <div class="d-flex align-items-center">
+                    <div class="bg-info bg-opacity-10 text-info p-3 rounded-circle me-3">
+                        <i class="bi bi-shield-check fs-3"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small">KYC / Compliance</div>
+                        <h5 class="fw-bold mb-0"
+                            th:classappend="${customer.kycStatus.name() == 'VERIFIED' ? 'text-success' : 'text-warning'}"
+                            th:text="${customer.kycStatus}">VERIFIED</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accounts List -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 border-0">
+            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-list-columns-reverse me-2 text-primary"></i>All Deposit Accounts</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Account Number</th>
+                            <th>Type</th>
+                            <th>Branch</th>
+                            <th class="text-end">Available Balance</th>
+                            <th class="text-end">Ledger Balance</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-end">Quick Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(accounts)}">
+                            <td colspan="7" class="text-center py-4 text-muted">No accounts registered yet.</td>
+                        </tr>
+                        <tr th:each="acc : ${accounts}">
+                            <td>
+                                <div class="fw-bold font-monospace text-primary" th:text="${acc.accountNumber}">SB1000000001</div>
+                                <small class="text-muted" th:text="${customer.name}">Customer Name</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border" th:text="${acc.accountType}">SAVINGS</span>
+                            </td>
+                            <td>
+                                <span class="small" th:text="${acc.branch != null ? acc.branch.branchName : 'Main Corporate Branch'}">Main Branch</span>
+                            </td>
+                            <td class="text-end fw-bold font-monospace fs-6 text-dark"
+                                th:text="${@currencyUtil.format(acc.balance)}">₹0.00</td>
+                            <td class="text-end font-monospace small text-muted"
+                                th:text="${@currencyUtil.format(acc.ledgerBalance != null ? acc.ledgerBalance : acc.balance)}">₹0.00</td>
+                            <td class="text-center">
+                                <span class="badge"
+                                      th:classappend="${acc.status.name() == 'ACTIVE' ? 'bg-success' : (acc.status.name() == 'DORMANT' ? 'bg-warning text-dark' : 'bg-danger')}"
+                                      th:text="${acc.status}">ACTIVE</span>
+                            </td>
+                            <td class="text-end">
+                                <a th:href="@{/deposit(accountNumber=${acc.accountNumber})}" class="btn btn-sm btn-outline-success me-1">
+                                    <i class="bi bi-arrow-down-circle"></i> Add Funds
+                                </a>
+                                <a th:href="@{/customer/transfer}" class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="bi bi-arrow-left-right"></i> Transfer
+                                </a>
+                                <a th:href="@{/customer/transactions}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-clock-history"></i> History
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

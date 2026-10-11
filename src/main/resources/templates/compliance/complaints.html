@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Disputes & Unauthorized Transaction Queue - SmartBank Compliance</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/navbar :: navbar('compliance')}"></div>
+
+<div class="container-fluid py-4 px-lg-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/compliance/dashboard}">Compliance Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Unauthorized Transaction Complaints</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="card shadow-sm border-0 mb-4 bg-danger text-white">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div>
+                    <h3 class="fw-bold mb-1"><i class="bi bi-shield-exclamation me-2"></i>Unauthorized Electronic Transaction Queue</h3>
+                    <p class="mb-0 text-white-50">Enforcing RBI Master Directions on Customer Protection (DBR.No.Leg.BC.78/09.07.005/2017-18): 10-day shadow credits and 90-day final resolution mandates.</p>
+                </div>
+                <a th:href="@{/compliance/rules}" class="btn btn-outline-light btn-sm fw-semibold">
+                    <i class="bi bi-book me-1"></i>Compliance Rules Registry
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Complaints Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-list-task text-primary me-2"></i>All Logged Disputes</h5>
+            <span class="badge bg-secondary" th:text="${#lists.size(complaints)} + ' Total Complaints'">0 Total Complaints</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Complaint Reference</th>
+                            <th>Customer / Account</th>
+                            <th>Dispute Amount</th>
+                            <th>Reporting Lag</th>
+                            <th>RBI Liability Tier</th>
+                            <th>Customer Liability Cap</th>
+                            <th>Bank Liability</th>
+                            <th>Shadow Credit Due</th>
+                            <th>Final Resolution Due</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(complaints)}">
+                            <td colspan="10" class="text-center text-muted py-5">
+                                <i class="bi bi-check-circle text-success fs-1 d-block mb-2"></i>
+                                No active unauthorized transaction complaints found.
+                            </td>
+                        </tr>
+                        <tr th:each="c : ${complaints}">
+                            <td class="ps-3 font-monospace small">
+                                <strong th:text="${c.complaintReference}">CMP-123</strong><br>
+                                <small class="text-muted" th:text="${#temporals.format(c.createdAt, 'dd MMM yyyy HH:mm')}"></small>
+                            </td>
+                            <td>
+                                <strong th:text="${c.customer.name}">Customer Name</strong><br>
+                                <span class="font-monospace small text-primary" th:text="${c.customer.accountNumber}">SB1000000001</span>
+                            </td>
+                            <td class="fw-bold text-danger" th:text="${@currencyUtil.format(c.disputeAmount)}">₹0.00</td>
+                            <td>
+                                <span class="badge bg-light text-dark border" th:text="${c.daysToReport} + ' Days'">0 Days</span>
+                            </td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${c.liabilityTier == 'ZERO_LIABILITY' ? 'bg-success' : (c.liabilityTier == 'LIMITED_LIABILITY' ? 'bg-warning text-dark' : 'bg-danger')}"
+                                      th:text="${c.liabilityTier}">ZERO_LIABILITY</span>
+                            </td>
+                            <td class="font-monospace small" th:text="${@currencyUtil.format(c.customerLiabilityCap)}">₹0.00</td>
+                            <td class="font-monospace small fw-semibold text-danger" th:text="${@currencyUtil.format(c.bankLiabilityAmount)}">₹0.00</td>
+                            <td class="font-monospace small text-muted" th:text="${#temporals.format(c.shadowReversalDeadline, 'dd MMM yyyy')}">10 Days</td>
+                            <td class="font-monospace small text-muted" th:text="${#temporals.format(c.resolutionDeadline, 'dd MMM yyyy')}">90 Days</td>
+                            <td>
+                                <span class="badge bg-primary" th:text="${c.status}">SUBMITTED</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="sb-footer py-3 mt-5">
+    <div class="container text-center">
+        <small><i class="bi bi-bank2 me-1"></i>SmartBank &copy; 2025 | Regulatory Oversight</small>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

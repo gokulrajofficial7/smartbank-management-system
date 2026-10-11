@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBank — Compliance & Risk Center</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}">
+    <link rel="alternate icon" type="image/x-icon" th:href="@{/favicon.ico}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/navbar :: navbar('compliance-dashboard')}"></div>
+
+<div class="container py-4">
+    <!-- Flash Messages -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Status Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 border-start border-4 border-success p-3">
+                <small class="text-muted text-uppercase fw-semibold">Double-Entry Ledger Integrity</small>
+                <h4 class="fw-bold mb-0 text-success" th:if="${ledgerBalanced}"><i class="bi bi-check-circle"></i> Balanced (100%)</h4>
+                <h4 class="fw-bold mb-0 text-danger" th:unless="${ledgerBalanced}"><i class="bi bi-x-circle"></i> Discrepancy Detected</h4>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 border-start border-4 border-danger p-3">
+                <small class="text-muted text-uppercase fw-semibold">Security Violations Blocked</small>
+                <h4 class="fw-bold mb-0 text-danger" th:text="${violations.size()}">0</h4>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 border-start border-4 border-warning p-3">
+                <small class="text-muted text-uppercase fw-semibold">Frozen Accounts</small>
+                <h4 class="fw-bold mb-0 text-warning" th:text="${frozenAccounts.size()}">0</h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions & Freeze Control -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h5 class="fw-bold mb-0 text-danger"><i class="bi bi-snow2 me-2"></i> Freeze Account (AML / Court Order)</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form th:action="@{/compliance/freeze}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Account Number to Freeze *</label>
+                            <input type="text" name="accountNumber" class="form-control font-monospace" placeholder="e.g. SB3532006893" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Regulatory Reason / Warrant *</label>
+                            <input type="text" name="reason" class="form-control" placeholder="e.g. Suspicious AML activity flag" required>
+                        </div>
+                        <button type="submit" class="btn btn-danger w-100 fw-semibold">
+                            <i class="bi bi-lock-fill me-1"></i> Freeze Account Immediately
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h5 class="fw-bold mb-0 text-success"><i class="bi bi-unlock me-2"></i> Unfreeze Account</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form th:action="@{/compliance/unfreeze}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Account Number to Restore *</label>
+                            <input type="text" name="accountNumber" class="form-control font-monospace" placeholder="e.g. SB3532006893" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Compliance Clearance Notes *</label>
+                            <input type="text" name="reason" class="form-control" placeholder="e.g. Verification complete, identity verified" required>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 fw-semibold">
+                            <i class="bi bi-unlock-fill me-1"></i> Lift Freeze & Restore Access
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Navigation -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0"><i class="bi bi-shield-slash me-2 text-danger"></i> Recent Security Access Denials</h5>
+        <a th:href="@{/compliance/audit-logs}" class="btn btn-outline-dark btn-sm">
+            <i class="bi bi-journal-text me-1"></i> Full Audit Trail Log
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Action</th>
+                        <th>Resource</th>
+                        <th>IP Address</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${#lists.isEmpty(violations)}">
+                        <td colspan="7" class="text-center py-4 text-muted">No security violations recorded.</td>
+                    </tr>
+                    <tr th:each="v : ${violations}">
+                        <td class="small" th:text="${#temporals.format(v.timestamp, 'yyyy-MM-dd HH:mm:ss')}">Time</td>
+                        <td class="fw-semibold" th:text="${v.username}">user</td>
+                        <td><span class="badge bg-secondary" th:text="${v.role}">ROLE</span></td>
+                        <td class="text-danger fw-bold" th:text="${v.action}">DENIED</td>
+                        <td class="font-monospace small" th:text="${v.resource}">URI</td>
+                        <td class="small text-muted" th:text="${v.ipAddress}">IP</td>
+                        <td><span class="badge bg-danger" th:text="${v.status}">DENIED</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

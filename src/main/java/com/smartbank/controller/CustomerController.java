@@ -4,8 +4,13 @@ import com.smartbank.entity.Customer;
 import com.smartbank.exception.BankingException;
 import com.smartbank.service.CustomerService;
 import com.smartbank.service.TransactionService;
+import com.smartbank.entity.Role;
+import com.smartbank.entity.User;
+import com.smartbank.security.AuthorizationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -17,14 +22,21 @@ import java.util.List;
 @Controller
 @RequestMapping("/customers")
 @RequiredArgsConstructor
+@Slf4j
 public class CustomerController {
 
     private final CustomerService customerService;
     private final TransactionService transactionService;
+    private final AuthorizationService authorizationService;
 
     // --- List All Customers ---
     @GetMapping
     public String listCustomers(Model model) {
+        User currentUser = authorizationService.getRequiredCurrentUser();
+        if (currentUser.getRole() == Role.CUSTOMER) {
+            log.warn("[AUTH-ROUTE-DENIAL] Customer [{}] attempted to access staff customer directory", currentUser.getUsername());
+            throw new AccessDeniedException("Forbidden: Customer directory access is restricted to bank staff.");
+        }
         List<Customer> customers = customerService.getAllCustomers();
         model.addAttribute("customers", customers);
         model.addAttribute("totalCount", customers.size());
@@ -34,6 +46,11 @@ public class CustomerController {
     // --- Search Customers ---
     @GetMapping("/search")
     public String searchCustomers(@RequestParam(required = false) String query, Model model) {
+        User currentUser = authorizationService.getRequiredCurrentUser();
+        if (currentUser.getRole() == Role.CUSTOMER) {
+            log.warn("[AUTH-ROUTE-DENIAL] Customer [{}] attempted to search staff customer directory", currentUser.getUsername());
+            throw new AccessDeniedException("Forbidden: Customer search is restricted to bank staff.");
+        }
         if (query != null && !query.trim().isEmpty()) {
             model.addAttribute("customers", customerService.searchCustomers(query.trim()));
             model.addAttribute("searchQuery", query);
@@ -46,6 +63,11 @@ public class CustomerController {
     // --- Create Customer Form ---
     @GetMapping("/create")
     public String showCreateForm(Model model) {
+        User currentUser = authorizationService.getRequiredCurrentUser();
+        if (currentUser.getRole() == Role.CUSTOMER) {
+            log.warn("[AUTH-ROUTE-DENIAL] Customer [{}] attempted to access staff new customer creation form", currentUser.getUsername());
+            throw new AccessDeniedException("Forbidden: New account creation is restricted to bank staff.");
+        }
         model.addAttribute("customer", new Customer());
         return "create-customer";
     }
@@ -56,6 +78,11 @@ public class CustomerController {
                                   BindingResult bindingResult,
                                   RedirectAttributes redirectAttributes,
                                   Model model) {
+        User currentUser = authorizationService.getRequiredCurrentUser();
+        if (currentUser.getRole() == Role.CUSTOMER) {
+            log.warn("[AUTH-ROUTE-DENIAL] Customer [{}] attempted to submit staff new customer creation", currentUser.getUsername());
+            throw new AccessDeniedException("Forbidden: New account creation is restricted to bank staff.");
+        }
         if (bindingResult.hasErrors()) {
             return "create-customer";
         }
@@ -92,6 +119,11 @@ public class CustomerController {
     // --- Edit Customer Form ---
     @GetMapping("/{id}/edit")
     public String showEditForm(@PathVariable Long id, Model model) {
+        User currentUser = authorizationService.getRequiredCurrentUser();
+        if (currentUser.getRole() == Role.CUSTOMER) {
+            log.warn("[AUTH-ROUTE-DENIAL] Customer [{}] attempted to access staff edit form for customer ID: {}", currentUser.getUsername(), id);
+            throw new AccessDeniedException("Forbidden: Customer editing is restricted to bank staff.");
+        }
         model.addAttribute("customer", customerService.getCustomerById(id));
         return "edit-customer";
     }
@@ -103,6 +135,11 @@ public class CustomerController {
                                   BindingResult bindingResult,
                                   RedirectAttributes redirectAttributes,
                                   Model model) {
+        User currentUser = authorizationService.getRequiredCurrentUser();
+        if (currentUser.getRole() == Role.CUSTOMER) {
+            log.warn("[AUTH-ROUTE-DENIAL] Customer [{}] attempted to edit customer ID: {}", currentUser.getUsername(), id);
+            throw new AccessDeniedException("Forbidden: Customer editing is restricted to bank staff.");
+        }
         if (bindingResult.hasErrors()) {
             return "edit-customer";
         }
@@ -120,6 +157,11 @@ public class CustomerController {
     // --- Delete Customer ---
     @PostMapping("/{id}/delete")
     public String deleteCustomer(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        User currentUser = authorizationService.getRequiredCurrentUser();
+        if (currentUser.getRole() == Role.CUSTOMER) {
+            log.warn("[AUTH-ROUTE-DENIAL] Customer [{}] attempted to delete customer ID: {}", currentUser.getUsername(), id);
+            throw new AccessDeniedException("Forbidden: Account deletion is restricted to bank staff.");
+        }
         customerService.deleteCustomer(id);
         redirectAttributes.addFlashAttribute("successMessage", "Customer account deleted successfully.");
         return "redirect:/customers";

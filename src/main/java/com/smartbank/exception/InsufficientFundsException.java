@@ -2,7 +2,7 @@ package com.smartbank.exception;
 
 import java.math.BigDecimal;
 
-public class InsufficientFundsException extends RuntimeException {
+public class InsufficientFundsException extends BankingException {
 
     public InsufficientFundsException(String message) {
         super(message);

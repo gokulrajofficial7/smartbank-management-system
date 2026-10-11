@@ -1,5 +1,7 @@
 package com.smartbank.controller;
 
+import com.smartbank.entity.Role;
+import com.smartbank.security.AuthorizationService;
 import com.smartbank.service.CustomerService;
 import com.smartbank.service.TransactionService;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +15,7 @@ public class HomeController {
 
     private final CustomerService customerService;
     private final TransactionService transactionService;
+    private final AuthorizationService authorizationService;
 
     @GetMapping("/")
     public String home(Model model) {
@@ -25,6 +28,12 @@ public class HomeController {
 
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
+        // Enforce role isolation: Do not expose global bank totals to ordinary customers
+        if (authorizationService.getCurrentUser().isPresent()
+                && authorizationService.getCurrentUser().get().getRole() == Role.CUSTOMER) {
+            return "redirect:/customer/dashboard";
+        }
+
         model.addAttribute("totalCustomers", customerService.countTotalCustomers());
         model.addAttribute("totalBalance", customerService.sumTotalBalance());
         model.addAttribute("totalTransactions", transactionService.countTotalTransactions());
